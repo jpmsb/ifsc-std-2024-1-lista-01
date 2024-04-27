@@ -1,0 +1,17 @@
+networks:
+  rede-std:
+    external: false
+    name: rede-std
+
+services:
+  servidor:
+    build:
+      context: servidor
+      dockerfile: Dockerfile
+    image: jpmsb/servidor
+    networks:
+      - rede-std
+    deploy:
+      mode: replicated
+      replicas: 10
+    # container_name: servidor
