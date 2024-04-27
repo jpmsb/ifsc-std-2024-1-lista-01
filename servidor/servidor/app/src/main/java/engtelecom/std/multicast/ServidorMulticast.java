@@ -5,9 +5,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 /**
  * Servidor de descoberta Multicast
@@ -15,21 +13,22 @@ import org.slf4j.LoggerFactory;
  * Envia o próprio endereço IP em intervalos regulares para um grupo multicast.
  */
 public class ServidorMulticast implements Runnable {
-    private static Logger logger = LoggerFactory.getLogger(ServidorMulticast.class);
+    private Logger logger;
     private final int INTERVALO = 1000;
     private String menssagem;
     private int porta;
     private InetAddress enderecoMulticast;
 
-    public ServidorMulticast(String enderecoMulticast, int porta, int portaTcp) throws UnknownHostException, SocketException {
+    public ServidorMulticast(java.util.logging.Logger logger, String enderecoMulticast, int porta, int portaServidorTcp) throws UnknownHostException, SocketException {
+        this.logger = logger;
         this.enderecoMulticast = InetAddress.getByName(enderecoMulticast);
         this.porta = porta;
-        this.menssagem = portaTcp + "";
+        this.menssagem = portaServidorTcp + "";
     }
 
     @Override
     public void run() {
-        logger.info("Servidor de descoberta Multicast iniciado.");
+        logger.info("Servidor de descoberta Multicast iniciado!");
         try (DatagramSocket datagramSocket = new DatagramSocket()) {
             while (true) {
                 byte[] buffer =  menssagem.getBytes();
@@ -38,7 +37,7 @@ public class ServidorMulticast implements Runnable {
                 Thread.sleep(INTERVALO);
             }
         } catch (Exception e) {
-            logger.error("Erro: " + e.getMessage());
+            logger.severe("Erro: " + e.getMessage());
         }
     }
 }
