@@ -31,7 +31,7 @@ public class Cliente {
 
     private final int BUFFER_SIZE;
     private String endereco;
-    private int porta;
+    private int portaMulticast;
     private int tempoLimiteDescobrir;
     private ArrayList<String> servidoresDescobertos = new ArrayList<>();
     
@@ -40,10 +40,10 @@ public class Cliente {
      */
     private Logger logger;
     
-    public Cliente(Logger logger, String enderecoMulticast, int porta, int tempoLimiteDescobrir){
+    public Cliente(Logger logger, String enderecoMulticast, int portaMulticast, int tempoLimiteDescobrir){
         this.logger = logger;
         this.endereco = enderecoMulticast;
-        this.porta = porta;
+        this.portaMulticast = portaMulticast;
         this.tempoLimiteDescobrir = tempoLimiteDescobrir;
         this.BUFFER_SIZE = 256;
     }
@@ -82,12 +82,12 @@ public class Cliente {
         logger.info("Cliente Multicast iniciado.");
         List<InetAddress> interfacesDeRede = obterInterfacesDeRede();
 
-        try (MulticastSocket multicastSocket = new MulticastSocket(this.porta)) {
+        try (MulticastSocket multicastSocket = new MulticastSocket(this.portaMulticast)) {
             // Cria o endereço multicast
             InetAddress enderecoMulticast = InetAddress.getByName(this.endereco);
             
             // Cria o grupo multicast
-            InetSocketAddress grupo = new InetSocketAddress(enderecoMulticast, this.porta);
+            InetSocketAddress grupo = new InetSocketAddress(enderecoMulticast, this.portaMulticast);
 
             // Entra no grupo multicast para todas as interfaces
             for (InetAddress inetAddress : interfacesDeRede) {
@@ -100,7 +100,7 @@ public class Cliente {
             DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
             // Receberá, durante 'tempoLimiteDescobrir' segundos, mensagens dos servidores multicast
-            logger.info(MAGENTA + "Descobrindo servidores na rede local..." + NORMAL + "\n");
+            logger.info(MAGENTA + "Descobrindo servidores no grupo \"" + endereco + ":" + portaMulticast + "\"\n" + NORMAL);
             long tempoInicio = System.currentTimeMillis();
             long tempoFim = tempoInicio + tempoLimiteDescobrir * 1000;
 
