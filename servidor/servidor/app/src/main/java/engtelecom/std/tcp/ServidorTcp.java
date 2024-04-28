@@ -19,6 +19,9 @@ public class ServidorTcp implements Runnable {
         this.logger = logger;
     }
 
+    /**
+     * Reimplementação do método que é chamado quando a thread é iniciada.
+     */
     @Override
     public void run() {
         if (socket != null) {
