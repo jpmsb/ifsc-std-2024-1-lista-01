@@ -100,7 +100,7 @@ public class Cliente {
             DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
             // Receberá, durante 'tempoLimiteDescobrir' segundos, mensagens dos servidores multicast
-            logger.info(MAGENTA + "Descobrindo servidores no grupo \"" + endereco + ":" + portaMulticast + "\"\n" + NORMAL);
+            logger.info(MAGENTA + "Descobrindo servidores no grupo \"" + endereco + ":" + portaMulticast + "\"...\n" + NORMAL);
             long tempoInicio = System.currentTimeMillis();
             long tempoFim = tempoInicio + tempoLimiteDescobrir * 1000;
 
