@@ -1,191 +1,277 @@
 package engtelecom.std;
 
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
-import java.net.NetworkInterface;
-import java.util.Collections;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Logger;
-import java.util.ArrayList;
-import java.util.List;
-import java.net.Inet6Address;
-import java.net.Socket;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
+import java.util.logging.LogManager;
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Random;
 
 /**
- * Aplicação Cliente multicast
+ * Aplicação Cliente
  *
  */
 public class Principal {
+    /**
+     * Cores para uso com as mensagens do console
+     */
+    public static final String VERDE = "\033[1;32m";
+    public static final String MAGENTA = "\033[1;35m";
+    public static final String VERMELHO = "\033[1;31m";
+    public static final String AMARELO = "\033[1;33m";
+    public static final String CIANO = "\033[1;36m";
+    public static final String PRETO = "\033[1;30]";
+    public static final String FUNDO_AZUL = "\033[1;44m";
+    public static final String FUNDO_CIANO = "\033[1;46m";
+    public static final String FUNDO_CINZA = "\033[1;47m";
+    public static final String FUNDO_VERMELHO = "\033[1;41m";
+    public static final String FUNDO_VERDE = "\033[2;30;1;42m";
+    public static final String NORMAL = "\033[0m";
 
-    // Para exibir mensagens de log
-    private static final Logger logger = Logger.getLogger(Principal.class.getName());
+    /**
+     * Valores padrão 
+     */
+    private static final String ENDERECO_MULTICAST_PADRAO = "231.0.0.0";
+    private static final int PORTA_MULTICAST_PADRAO = 8888;
+    private static final int TEMPO_LIMITE_PADRAO_PARA_DESCOBERTA = 3;
 
-    private final int BUFFER_SIZE;
-    private String endereco;
-    private int porta;
-    private List<InetAddress> interfacesDeRede;
-    private ArrayList<String> servidoresDescobertos = new ArrayList<>();
-    private int tempoLimiteDescobrir = 3;
+    /**
+     * Valores de configuração do cliente
+     */
+    private static int tempoLimiteDescobrir;
+    private static int portaMulticast;
+    private static String enderecoMulticast;
+    private static String pilotoAutomatico;
+    private static Scanner teclado = new Scanner(System.in);
 
-    public Principal(String endereco, int porta) {
-        this.BUFFER_SIZE = 256;
-        this.endereco = endereco;
-        this.porta = porta;
-        this.interfacesDeRede = new ArrayList<>();
+    /**
+     * Sistema de log geral da aplicação
+     */
+    private static final Logger logger = Logger.getLogger(Principal.class.getName());  
+
+    /**
+     * Objeto que vai cuidar da exibição do log na saída padrão do console
+     */ 
+    private static ConsoleHandler consoleHandler = new ConsoleHandler();
+
+    /**
+     * Exibe os elementos de um vetor de string no formato de lista numerada.
+     * Ex.: N) Elemento
+     * @param arranjo arranjo de strings
+     * @param posicaoDestacada Posição que será destacada com uma cor diferente
+     */
+    private static void listaNumerada(String elementos[], int posicaoDestacada){
+        int indice = 1;
+        for (String elemento : elementos) {
+            if (indice == posicaoDestacada) System.out.println(FUNDO_VERDE + indice + ") " + elemento + NORMAL);
+            else System.out.println(indice + ") " + elemento);
+            indice++;
+        }
     }
 
     /**
-     * Obtém as interfaces de rede disponíveis. Irá excluir a interface de loopback
-     * e as interfaces IPv6.
+     * Exibe os elementos de uma ArrayList no formato de lista numerada.
+     * Ex.: N) Elemento
+     * @param lista ArrayList de strings
+     * @param posicaoDestacada Posição que será destacada com uma cor diferente
+     */
+    private static void listaNumerada(ArrayList<String> lista, int posicaoDestacada){
+        int indice = 1;
+        for (String elemento : lista) {
+            if (indice == posicaoDestacada) System.out.println(FUNDO_VERDE + indice + ") " + elemento + NORMAL);
+            else System.out.println(indice + ") " + elemento);
+            indice++;
+        }
+    }
+
+    /**
+     * Exibe um menu de opções retornando o número de uma opção válida.
+     * @param titulo texto no topo do menu
+     * @param pedido texto no rodapé do menu, precedido pela numeração de opções
+     * @param opcoes Lista com todas as opções que serão exibidas
      * 
-     * @return
+     * @return número válido da opção escolhida
      */
-    public List<InetAddress> obterInterfacesDeRede() {
-        List<InetAddress> interfaces = new ArrayList<>();
-        try {
-            logger.info("Obtendo interfaces de rede...");
-            for (NetworkInterface networkInterface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
-                for (InetAddress inetAddress : Collections.list(networkInterface.getInetAddresses())) {
-                    // Não incluir loopback e IPv6ß
-                    if (inetAddress.isLoopbackAddress() || inetAddress instanceof Inet6Address) {
-                        continue;
-                    }
-                    interfaces.add(inetAddress);
-                    String m = String.format("Nome: %s\tEndereço: %s\n", networkInterface.getDisplayName(), inetAddress.toString().substring(1));
-                    logger.info(m);
-                }
+    private static int menuOpcoes(String titulo, String pedido, ArrayList<String> opcoes){
+        boolean sair = false;
+        int quantidadeOpcoes = opcoes.size();
+        int opcao = 0;
+        
+        while (! sair){
+            System.out.println(titulo + "\n");
+
+            listaNumerada(opcoes, 0);
+            System.out.print("\n" + pedido + " (1 .. " + quantidadeOpcoes + ", 0 para sair): ");
+            opcao = teclado.nextInt();
+
+            if (opcao == 0) {
+                System.out.println("\nEncerrando a aplicação.\n");
+                sair = true;
+            } else if (opcao < 1 || opcao > quantidadeOpcoes) {
+                System.out.println(VERMELHO + "\nOpção inválida!\n" + NORMAL);
+            } else {
+                sair = true;
             }
-        } catch (Exception e) {
-            logger.severe("Erro: " + e.getMessage());
         }
-        return interfaces;
-    }
 
-    /**
-     * Faz a descoberta de servidores via multicast
-     */
-    public void descobreServidores() {
-        System.out.println("Cliente Multicast iniciado.");
-        this.interfacesDeRede = obterInterfacesDeRede();
-
-        try (MulticastSocket multicastSocket = new MulticastSocket(this.porta)) {
-
-            // Cria o endereço multicast
-            InetAddress enderecoMulticast = InetAddress.getByName(this.endereco);
-            
-            // Cria o grupo multicast
-            InetSocketAddress grupo = new InetSocketAddress(enderecoMulticast, this.porta);
-
-            // Entra no grupo multicast para todas as interfaces
-            for (InetAddress inetAddress : this.interfacesDeRede) {
-                multicastSocket.joinGroup(grupo, NetworkInterface.getByInetAddress(inetAddress));
-            }
-
-            byte[] buffer = new byte[this.BUFFER_SIZE];
-            
-            // Cria o pacote para receber a mensagem
-            DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
-
-            // Receberá, durante 3 segundos, mensagens dos servidores multicast
-            long tempoInicio = System.currentTimeMillis();
-            long tempoFim = tempoInicio + tempoLimiteDescobrir * 1000;
-
-            while (System.currentTimeMillis() < tempoFim) {
-                multicastSocket.receive(datagramPacket);
-                String portaDoServidor = new String(datagramPacket.getData());
-                String servidorDeOrigem = datagramPacket.getAddress().toString().substring(1);
-                String ipPortaServidor = servidorDeOrigem + ":" + portaDoServidor.trim();
-                
-                if (! servidoresDescobertos.contains(ipPortaServidor)){
-                    servidoresDescobertos.add(ipPortaServidor);
-                }
-                // System.out.printf("Servidor: %s enviou a mensagem: %s\n", datagramPacket.getAddress(), mensagemRecebida.trim());
-            }
-
-            // Deixa o grupo multicast para todas as interfaces
-            for (InetAddress inetAddress : this.interfacesDeRede) {
-                multicastSocket.leaveGroup(grupo, NetworkInterface.getByInetAddress(inetAddress));
-            }
-        } catch (Exception e) {
-            logger.severe("Erro: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Estabelece a comunicação com o servidor TCP.
-     * @param mensagem Mensagem a ser enviada para o servidor TCP.
-     * @return Resposta do servidor TCP.
-     */
-    public String comunicacao(String enderecoServidor, int porta, String mensagem){
-        String respostaDoServidor = "";
-        // Estabelecendo a conexão com o tcp
-        try (Socket socket = new Socket(enderecoServidor, porta)) {
-            logger.info("Conectado ao servidor " + enderecoServidor + ":" + porta);
-
-            // Estabelecendo os fluxos de entrada e saída
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            // Somente bytes podem ser enviados e aqui estamos enviando uma string, por isso usamos um OutputStreamWriter com UTF-8
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
-
-            // Enviando a mensagem para o servidor TCP
-            outputStreamWriter.write(mensagem+ "\n");
-            outputStreamWriter.flush();
-
-            // Lendo a resposta do servidor TCP
-            respostaDoServidor = bufferedReader.readLine();
-
-        } catch (Exception e) {
-            logger.severe("Erro: " + e.getMessage());
-        }
-        return respostaDoServidor;
-    }
-  
-    public ArrayList<String> getServidoresDescobertos() {
-        return servidoresDescobertos;
+        return opcao;
     }
 
     public static void main(String[] args) {
-        Scanner teclado = new Scanner(System.in);
+        // Redefine o sistema log para evitar saídas indesejadas
+        LogManager.getLogManager().reset();
 
-        String enderecoMulticast = "231.0.0.0";
-        int porta = 8888;
+        /**
+         *  Definição do formatador de log. Como o gestor de log
+         * foi redefinido anteriormente, este será o único
+         * formatador a ser utilizado.
+         */
+        consoleHandler.setFormatter(new FormatadorDeLog());
+        logger.addHandler(consoleHandler);
 
-        // Caso sejam informados argumentos de linha de comando,
-        // 2, obtém o endereço multicast e a porta
-        if (args.length == 2) {
-            enderecoMulticast = args[0];
-            porta = Integer.parseInt(args[1]);
+        /**
+         * Obter o endereço do grupo multicast
+         * a partir da variável de ambiente 
+         * ENDERECO_MULTICAST.
+         * Caso a variável de ambiente esteja vazia, é atribuído o valor padrão
+         * ENDERECO_MULTICAST_PADRAO.
+         */
+        enderecoMulticast = System.getenv("ENDERECO_MULTICAST");
+        if (enderecoMulticast == null) enderecoMulticast = ENDERECO_MULTICAST_PADRAO;
+
+        /**
+         * Obter a porta do grupo multicast
+         * a partir da variável de ambiente 
+         * PORTA_MULTICAST.
+         * Caso a variável de ambiente esteja vazia, é atribuído o valor padrão
+         * PORTA_MULTICAST_PADRAO
+         */
+        try {
+            portaMulticast = Integer.parseInt(System.getenv("PORTA_MULTICAST"));
+        } catch (final NumberFormatException e){
+            portaMulticast = PORTA_MULTICAST_PADRAO;
         }
 
-        Principal clienteMulticast = new Principal(enderecoMulticast, porta);
-        clienteMulticast.descobreServidores();
-
-        System.out.println("Escolha um dos servidores abaixo para enviar a mensagem: ");
-        int indice = 1;
-        for (String servidor : clienteMulticast.getServidoresDescobertos()) { 
-            System.out.println(indice + ") " + servidor);
-            indice++;
+        /**
+         * Obter o tempo limite para descobrir servidores
+         * a partir da variável de ambiente 
+         * TEMPO_LIMITE_PARA_DESCOBERTA.
+         * Caso a variável de ambiente esteja vazia, é atribuído o valor padrão
+         * TEMPO_LIMITE_PADRAO_PARA_DESCOBERTA
+         */
+        try {
+            tempoLimiteDescobrir = Integer.parseInt(System.getenv("TEMPO_LIMITE_PARA_DESCOBERTA"));
+        } catch (final NumberFormatException e){
+            tempoLimiteDescobrir = TEMPO_LIMITE_PADRAO_PARA_DESCOBERTA;
         }
 
-        int indiceDigitado = teclado.nextInt();
-        teclado.nextLine();
+        /**
+         * Obter uma string com uma ou mais frases, separadas por ponto e 
+         * vírgula (;), a partir da variável de ambiente PILOTO_AUTOMATICO.
+         * Somente uma frase será selecionada.
+         */
+        pilotoAutomatico = System.getenv("PILOTO_AUTOMATICO");
 
-        System.out.print("Digite a mensagem a ser enviada: ");
-        String mensagem = teclado.nextLine();
+        /**
+         * Se a variável de ambiente PILOTO_AUTOMATICO estiver declarada,
+         * exibe de forma clara para o usuário que o modo piloto automático
+         * está ativo.
+         */
+        if (pilotoAutomatico != null) {
+            System.out.println("╔═════════════════════════════════╗");
+            System.out.println("║ " + AMARELO + "Modo piloto automático ativado." + NORMAL + " ║");
+            System.out.println("╚═════════════════════════════════╝\n");
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
-        String infoServidor[] = clienteMulticast.getServidoresDescobertos().get(indiceDigitado - 1).split(":");
+        /**
+         * Caso sejam informados 4 argumentos de linha de comando,
+         * obtém o endereço multicast, a porta e o tempo limite para
+         * a descoberta de servidores a partir destes argumentos.
+         */
+        if (args.length == 4) {
+            enderecoMulticast = args[1];
+            portaMulticast = Integer.parseInt(args[2]);
+            tempoLimiteDescobrir = Integer.parseInt(args[3]);
+        }
+
+        /**
+         * Instancia o cliente e faz a descoberta de servidores na rede local
+         */
+        Cliente cliente = new Cliente(logger, enderecoMulticast, portaMulticast, tempoLimiteDescobrir);
+
+        /**
+         * Faz a descoberta dos servidors via multicast
+         */
+        cliente.descobreServidores();
+
+        String titulo = "Servidores descobertos";
+        String pedido = "Escolha um dos servidores abaixo para enviar a mensagem";
+        int indiceDigitado = 0;
+        String mensagem = "";
+
+        if (pilotoAutomatico != null) {
+            /**
+             * Seleciona um servidor aleatório para enviar a mensagem.
+             */
+            Random random = new Random();
+            indiceDigitado = 1 + random.nextInt(cliente.getServidoresDescobertos().size()-1);
+
+            String mensagens[] = pilotoAutomatico.split(";");
+            int posicaoMensagem = random.nextInt(mensagens.length - 1);
+            mensagem = mensagens[posicaoMensagem];
+
+            System.out.println("Servidores descobertos\n");
+            listaNumerada(cliente.getServidoresDescobertos(), indiceDigitado);
+
+            System.out.println("\nMensagens disponíveis\n");
+            listaNumerada(mensagens, posicaoMensagem + 1);
+            
+        } else {
+            /**
+             * Exibição do menu de servidores a serem escolhidos, tendo como resultado
+             * uma opção válida
+             */
+            indiceDigitado = menuOpcoes(titulo, pedido, cliente.getServidoresDescobertos());
+
+            /**
+             * Caso o usuário tenha escolhido a opção 0, a aplicação é encerrada
+             */
+            if (indiceDigitado == 0) {
+                System.exit(0);
+            }
+
+            teclado.nextLine(); // Consome a quebra de linha
+
+            /**
+             * A mensagem que será enviada para o servidor escolhido
+             */
+            System.out.print("Digite a mensagem a ser enviada: ");
+            mensagem = teclado.nextLine();
+        }
+
+        /**
+         * Separa a informações do servidor em um arranjo de strings (ip e porta)
+         */
+        String infoServidor[] = cliente.getServidoresDescobertos().get(indiceDigitado - 1).split(":");
         String ipServidor = infoServidor[0];
         int portaServidor = Integer.parseInt(infoServidor[1]);
 
-        System.out.println("Enviando a mensagem: " + mensagem + " para o servidor " + ipServidor + ":" + portaServidor);
-        String resposta = clienteMulticast.comunicacao(ipServidor, portaServidor, mensagem);
+        /**
+         * Mostra a mensagem que será enviada e para qual servidor será enviada
+         */
+        System.out.println(VERDE + "\nEnviando a mensagem \"" + CIANO + mensagem + VERDE + "\" para o servidor " + ipServidor + ":" + portaServidor + "\n" + NORMAL);
+
+        /**
+         * Envia a mensagem para o servidor escolhido e recebe de retorno a resposta do servidor
+         */
+        String resposta = cliente.comunicacao(ipServidor, portaServidor, mensagem);
 
         System.out.println("Resposta do servidor: " + resposta);
+        teclado.close();
     }
 }
