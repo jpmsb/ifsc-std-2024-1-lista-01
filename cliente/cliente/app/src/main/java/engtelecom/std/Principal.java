@@ -100,7 +100,11 @@ public class Principal {
         while (! sair){
             System.out.println(titulo + "\n");
 
+            // Exibe as opções. Como não se deseja destacar nenhuma opção,
+            // é informado o valor zero para posicaoDestacada, que nunca
+            // ocorrerá no método listaNumerada.
             listaNumerada(opcoes, 0);
+
             System.out.print("\n" + pedido + " (1 .. " + quantidadeOpcoes + ", 0 para sair): ");
             opcao = teclado.nextInt();
 
@@ -121,62 +125,54 @@ public class Principal {
         // Redefine o sistema log para evitar saídas indesejadas
         LogManager.getLogManager().reset();
 
-        /**
-         *  Definição do formatador de log. Como o gestor de log
-         * foi redefinido anteriormente, este será o único
-         * formatador a ser utilizado.
-         */
+        // Definição do formatador de log. Como o gestor de log
+        // foi redefinido anteriormente, este será o único
+        // formatador a ser utilizado.
         consoleHandler.setFormatter(new FormatadorDeLog());
         logger.addHandler(consoleHandler);
 
-        /**
-         * Obter o endereço do grupo multicast
-         * a partir da variável de ambiente 
-         * ENDERECO_MULTICAST.
-         * Caso a variável de ambiente esteja vazia, é atribuído o valor padrão
-         * ENDERECO_MULTICAST_PADRAO.
-         */
+        
+        // Obter o endereço do grupo multicast
+        // a partir da variável de ambiente 
+        // ENDERECO_MULTICAST.
+        // Caso a variável de ambiente esteja vazia, é atribuído o valor padrão
+        // ENDERECO_MULTICAST_PADRAO.
+        //  
         enderecoMulticast = System.getenv("ENDERECO_MULTICAST");
         if (enderecoMulticast == null) enderecoMulticast = ENDERECO_MULTICAST_PADRAO;
 
-        /**
-         * Obter a porta do grupo multicast
-         * a partir da variável de ambiente 
-         * PORTA_MULTICAST.
-         * Caso a variável de ambiente esteja vazia, é atribuído o valor padrão
-         * PORTA_MULTICAST_PADRAO
-         */
+        // Obter a porta do grupo multicast
+        // a partir da variável de ambiente 
+        // PORTA_MULTICAST.
+        // Caso a variável de ambiente esteja vazia, é atribuído o valor padrão
+        // PORTA_MULTICAST_PADRAO
+        // 
         try {
             portaMulticast = Integer.parseInt(System.getenv("PORTA_MULTICAST"));
         } catch (final NumberFormatException e){
             portaMulticast = PORTA_MULTICAST_PADRAO;
         }
 
-        /**
-         * Obter o tempo limite para descobrir servidores
-         * a partir da variável de ambiente 
-         * TEMPO_LIMITE_PARA_DESCOBERTA.
-         * Caso a variável de ambiente esteja vazia, é atribuído o valor padrão
-         * TEMPO_LIMITE_PADRAO_PARA_DESCOBERTA
-         */
+        // Obter o tempo limite para descobrir servidores
+        // a partir da variável de ambiente 
+        // TEMPO_LIMITE_PARA_DESCOBERTA.
+        // Caso a variável de ambiente esteja vazia, é atribuído o valor padrão
+        // TEMPO_LIMITE_PADRAO_PARA_DESCOBERTA
+        // 
         try {
             tempoLimiteDescobrir = Integer.parseInt(System.getenv("TEMPO_LIMITE_PARA_DESCOBERTA"));
         } catch (final NumberFormatException e){
             tempoLimiteDescobrir = TEMPO_LIMITE_PADRAO_PARA_DESCOBERTA;
         }
 
-        /**
-         * Obter uma string com uma ou mais frases, separadas por ponto e 
-         * vírgula (;), a partir da variável de ambiente PILOTO_AUTOMATICO.
-         * Somente uma frase será selecionada.
-         */
+        // Obter uma string com uma ou mais frases, separadas por ponto e 
+        // vírgula (;), a partir da variável de ambiente PILOTO_AUTOMATICO.
+        // Somente uma frase será selecionada.
         pilotoAutomatico = System.getenv("PILOTO_AUTOMATICO");
 
-        /**
-         * Se a variável de ambiente PILOTO_AUTOMATICO estiver declarada,
-         * exibe de forma clara para o usuário que o modo piloto automático
-         * está ativo.
-         */
+        // Se a variável de ambiente PILOTO_AUTOMATICO estiver declarada,
+        // exibe de forma clara para o usuário que o modo piloto automático
+        // está ativo.
         if (pilotoAutomatico != null) {
             System.out.println("╔═════════════════════════════════╗");
             System.out.println("║ " + AMARELO + "Modo piloto automático ativado." + NORMAL + " ║");
@@ -188,25 +184,19 @@ public class Principal {
             }
         }
 
-        /**
-         * Caso sejam informados 4 argumentos de linha de comando,
-         * obtém o endereço multicast, a porta e o tempo limite para
-         * a descoberta de servidores a partir destes argumentos.
-         */
+        // Caso sejam informados 4 argumentos de linha de comando,
+        // obtém o endereço multicast, a porta e o tempo limite para
+        // a descoberta de servidores a partir destes argumentos.
         if (args.length == 4) {
             enderecoMulticast = args[1];
             portaMulticast = Integer.parseInt(args[2]);
             tempoLimiteDescobrir = Integer.parseInt(args[3]);
         }
 
-        /**
-         * Instancia o cliente e faz a descoberta de servidores na rede local
-         */
+        // Instancia o cliente e faz a descoberta de servidores na rede local
         Cliente cliente = new Cliente(logger, enderecoMulticast, portaMulticast, tempoLimiteDescobrir);
 
-        /**
-         * Faz a descoberta dos servidors via multicast
-         */
+        // Faz a descoberta dos servidors via multicast
         cliente.descobreServidores();
 
         String titulo = "Servidores descobertos";
@@ -215,9 +205,7 @@ public class Principal {
         String mensagem = "";
 
         if (pilotoAutomatico != null) {
-            /**
-             * Seleciona um servidor aleatório para enviar a mensagem.
-             */
+            // Seleciona um servidor aleatório para enviar a mensagem.
             Random random = new Random();
             indiceDigitado = 1 + random.nextInt(cliente.getServidoresDescobertos().size()-1);
 
@@ -232,43 +220,31 @@ public class Principal {
             listaNumerada(mensagens, posicaoMensagem + 1);
             
         } else {
-            /**
-             * Exibição do menu de servidores a serem escolhidos, tendo como resultado
-             * uma opção válida
-             */
+            // Exibição do menu de servidores a serem escolhidos, tendo como resultado
+            // uma opção válida
             indiceDigitado = menuOpcoes(titulo, pedido, cliente.getServidoresDescobertos());
 
-            /**
-             * Caso o usuário tenha escolhido a opção 0, a aplicação é encerrada
-             */
+            // Caso o usuário tenha escolhido a opção 0, a aplicação é encerrada
             if (indiceDigitado == 0) {
                 System.exit(0);
             }
 
             teclado.nextLine(); // Consome a quebra de linha
 
-            /**
-             * A mensagem que será enviada para o servidor escolhido
-             */
+            // A mensagem que será enviada para o servidor escolhido
             System.out.print("Digite a mensagem a ser enviada: ");
             mensagem = teclado.nextLine();
         }
 
-        /**
-         * Separa a informações do servidor em um arranjo de strings (ip e porta)
-         */
+        // Separa a informações do servidor em um arranjo de strings (ip e porta)
         String infoServidor[] = cliente.getServidoresDescobertos().get(indiceDigitado - 1).split(":");
         String ipServidor = infoServidor[0];
         int portaServidor = Integer.parseInt(infoServidor[1]);
 
-        /**
-         * Mostra a mensagem que será enviada e para qual servidor será enviada
-         */
+        // Mostra a mensagem que será enviada e para qual servidor será enviada
         System.out.println(VERDE + "\nEnviando a mensagem \"" + CIANO + mensagem + VERDE + "\" para o servidor " + ipServidor + ":" + portaServidor + "\n" + NORMAL);
 
-        /**
-         * Envia a mensagem para o servidor escolhido e recebe de retorno a resposta do servidor
-         */
+        // Envia a mensagem para o servidor escolhido e recebe de retorno a resposta do servidor
         String resposta = cliente.comunicacao(ipServidor, portaServidor, mensagem);
 
         System.out.println("Resposta do servidor: " + resposta);

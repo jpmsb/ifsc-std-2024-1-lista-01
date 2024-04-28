@@ -83,34 +83,23 @@ public class Cliente {
         List<InetAddress> interfacesDeRede = obterInterfacesDeRede();
 
         try (MulticastSocket multicastSocket = new MulticastSocket(this.porta)) {
-
-            /**
-             * Cria o endereço multicast
-             */
+            // Cria o endereço multicast
             InetAddress enderecoMulticast = InetAddress.getByName(this.endereco);
             
-            /**
-             * Cria o grupo multicast
-             */
+            // Cria o grupo multicast
             InetSocketAddress grupo = new InetSocketAddress(enderecoMulticast, this.porta);
 
-            /**
-             * Entra no grupo multicast para todas as interfaces
-             */
+            // Entra no grupo multicast para todas as interfaces
             for (InetAddress inetAddress : interfacesDeRede) {
                 multicastSocket.joinGroup(grupo, NetworkInterface.getByInetAddress(inetAddress));
             }
 
             byte[] buffer = new byte[this.BUFFER_SIZE];
             
-            /**
-             * Entra no grupo multicast para todas as interfaces
-             */
+            // Entra no grupo multicast para todas as interfaces
             DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
-            /**
-             * Receberá, durante 'tempoLimiteDescobrir' segundos, mensagens dos servidores multicast
-             */
+            // Receberá, durante 'tempoLimiteDescobrir' segundos, mensagens dos servidores multicast
             logger.info(MAGENTA + "Descobrindo servidores na rede local..." + NORMAL + "\n");
             long tempoInicio = System.currentTimeMillis();
             long tempoFim = tempoInicio + tempoLimiteDescobrir * 1000;
@@ -126,9 +115,7 @@ public class Cliente {
                 }
             }
 
-            /**
-             * Deixa o grupo multicast para todas as interfaces
-             */
+            // Deixa o grupo multicast para todas as interfaces
             for (InetAddress inetAddress : interfacesDeRede) {
                 multicastSocket.leaveGroup(grupo, NetworkInterface.getByInetAddress(inetAddress));
             }
@@ -152,6 +139,7 @@ public class Cliente {
 
             // Estabelecendo os fluxos de entrada e saída
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
             // Somente bytes podem ser enviados e aqui estamos enviando uma string, por isso usamos um OutputStreamWriter com UTF-8
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
 
