@@ -1,7 +1,7 @@
 networks:
-  rede-std:
+  jpmsb-std:
     external: false
-    name: rede-std
+    name: jpmsb-std
 
 services:
   servidor:
@@ -10,11 +10,10 @@ services:
       dockerfile: Dockerfile
     image: jpmsb/servidor
     networks:
-      - rede-std
+      - jpmsb-std
     deploy:
       mode: replicated
-      replicas: 10
-    # container_name: servidor
+      replicas: 5
 
   cliente:
     build:
@@ -22,10 +21,9 @@ services:
       dockerfile: Dockerfile
     image: jpmsb/cliente
     networks:
-      - rede-std
+      - jpmsb-std
     deploy:
       mode: replicated
       replicas: 20
     environment:
-      - PILOTO_AUTOMATICO="Teste 1;Teste 2;Teste 3;Teste 4;Teste 5;Teste 6;Teste 7;Teste 8;Teste 9;Teste 10;Teste 11"
-    # container_name: cliente
+      - PILOTO_AUTOMATICO="${PILOTO_AUTOMATICO}"
