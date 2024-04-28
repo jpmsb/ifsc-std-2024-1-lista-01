@@ -63,7 +63,7 @@ public class Principal {
     private static void listaNumerada(String elementos[], int posicaoDestacada){
         int indice = 1;
         for (String elemento : elementos) {
-            if (indice == posicaoDestacada) System.out.println(FUNDO_VERDE + indice + ") " + elemento + NORMAL);
+            if (indice == posicaoDestacada) System.out.println(FUNDO_VERDE + indice + ") " + elemento + NORMAL + "\t<= Opção escolhida");
             else System.out.println(indice + ") " + elemento);
             indice++;
         }
@@ -78,7 +78,7 @@ public class Principal {
     private static void listaNumerada(ArrayList<String> lista, int posicaoDestacada){
         int indice = 1;
         for (String elemento : lista) {
-            if (indice == posicaoDestacada) System.out.println(FUNDO_VERDE + indice + ") " + elemento + NORMAL);
+            if (indice == posicaoDestacada) System.out.println(FUNDO_VERDE + indice + ") " + elemento + NORMAL + "\t<= Opção escolhida");
             else System.out.println(indice + ") " + elemento);
             indice++;
         }
