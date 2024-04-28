@@ -18,17 +18,25 @@ public class ServidorMulticast implements Runnable {
     private String menssagem;
     private int porta;
     private InetAddress enderecoMulticast;
+    private String stringEnderecoMulticast;
 
     public ServidorMulticast(java.util.logging.Logger logger, String enderecoMulticast, int porta, int portaServidorTcp) throws UnknownHostException, SocketException {
         this.logger = logger;
         this.enderecoMulticast = InetAddress.getByName(enderecoMulticast);
+        this.stringEnderecoMulticast = enderecoMulticast;
         this.porta = porta;
         this.menssagem = portaServidorTcp + "";
     }
 
+    /**
+     * Reimplementação do método que é chamado quando a thread é iniciada.
+     * É iniciado um servidor multicast que envia a porta do servidor TCP
+     * como a mensagem para o grupo.
+     */
     @Override
     public void run() {
-        logger.info("Servidor de descoberta Multicast iniciado!");
+        logger.info("\u2591\u2592\u2592 Servidor de descoberta Multicast iniciado! \u2592\u2592\u2591");
+        logger.info("Endereço do grupo multicast: " + stringEnderecoMulticast + "\tPorta: " + porta + "\n");
         try (DatagramSocket datagramSocket = new DatagramSocket()) {
             while (true) {
                 byte[] buffer =  menssagem.getBytes();
