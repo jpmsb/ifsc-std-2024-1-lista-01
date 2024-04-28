@@ -202,16 +202,25 @@ public class Principal {
         String titulo = "Servidores descobertos";
         String pedido = "Escolha um dos servidores abaixo para enviar a mensagem";
         int indiceDigitado = 0;
+        int quantidadeServidoresEncontrados = cliente.getServidoresDescobertos().size();
         String mensagem = "";
 
         if (pilotoAutomatico != null) {
             // Seleciona um servidor aleatório para enviar a mensagem.
             Random random = new Random();
-            indiceDigitado = 1 + random.nextInt(cliente.getServidoresDescobertos().size()-1);
+
+            // Caso haja somente um servidor, este será o utilizado
+            if (quantidadeServidoresEncontrados == 1) indiceDigitado = 1;
+            else indiceDigitado = 1 + random.nextInt(cliente.getServidoresDescobertos().size()-1);
 
             String mensagens[] = pilotoAutomatico.split(";");
-            int posicaoMensagem = random.nextInt(mensagens.length - 1);
-            mensagem = mensagens[posicaoMensagem];
+            int posicaoMensagem = 0;
+
+            if (mensagens.length == 1) mensagem = mensagens[0];
+            else {
+                posicaoMensagem = random.nextInt(mensagens.length - 1);
+                mensagem = mensagens[posicaoMensagem];
+            }
 
             System.out.println("Servidores descobertos\n");
             listaNumerada(cliente.getServidoresDescobertos(), indiceDigitado);
