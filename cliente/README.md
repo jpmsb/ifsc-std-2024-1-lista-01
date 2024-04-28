@@ -2,6 +2,10 @@
 
 O diretório [cliente](cliente/) contém a implementação da parte cliente deste projeto. Ele possui duas partes: cliente _multicast_ para a descoberta dos servidores ativos e cliente TCP para enviar a mensagem para o servidor escolhido.
 
+**O cliente não precisa saber de nenhuma informação do servidor TCP de antemão, ou seja, tanto o endereço do servidor quanto a porta a qual o mesmo está escutando, são descobertos na parte de _multicast_. Isso permite, inclusive, que haja servidores escutando em portas diferentes.**
+
+## Preparação
+
 Primeiramente, para realizar as instruções a seguir, clone este repositório e entre no diretório do mesmo:
 
 ```bash
